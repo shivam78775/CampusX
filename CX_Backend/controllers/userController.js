@@ -114,31 +114,28 @@ function logOut(req, res){
     });
     res.status(200).send({ message: "Logged out successfully" });
 };
-
-async function verifyUser(req, res) {
+async function verifyUser(req, res, next) {
     try {
         const token = req.cookies.token;
-        if (!token) return res.status(401).send({ message: "Unauthorized" });
+        if (!token) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await userModel.findById(decoded.userId).select("-password"); // Fixed "Users" to "userModel"
+        const user = await userModel.findById(decoded.userId).select("-password");
 
-        if (!user) return res.status(404).send({ message: "User not found" });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
 
-        res.status(200).send({
-            message: "User Verified",
-            user: {
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-            },
-        });
+        req.user = user; // ✅ Set req.user so next middleware can access it
+        next(); // ✅ Call next() to continue to createPost
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Server error" });
     }
 }
+
 
 
 async function resetPasswordRequest(req, res) {

@@ -1,7 +1,6 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const {register, verifyUser, login, logOut, resetPasswordRequest, resetPassword} = require('../controllers/userController');
+const {createPost} = require('../controllers/postController');
 const verifyUsery = require('../middlewares/userAuth');
 
 const userRouter = express.Router();
@@ -16,5 +15,6 @@ userRouter.post("/logout", logOut);
 userRouter.get("/verify-user", verifyUsery, verifyUser); 
 userRouter.post("/reset-password-request", resetPasswordRequest);
 userRouter.post("/reset-password", resetPassword);
+userRouter.post("/create/post", verifyUser, createPost);
 
 module.exports = userRouter;

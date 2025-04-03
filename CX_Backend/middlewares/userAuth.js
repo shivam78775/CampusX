@@ -14,8 +14,8 @@ const verifyUser = async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         console.log("Decoded JWT:", decoded);
 
-        // Find user in database
-        const user = await userModel.findById(decoded.userid).select("-password");
+        // Fix: Corrected userId reference (case-sensitive)
+        const user = await userModel.findById(decoded.userId).select("-password");
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
