@@ -5,105 +5,120 @@ const { sendVerificationEmail } = require("../middlewares/sendVerificationEmail"
 const userModel = require("../models/userModel");
 
 async function register(req, res) {
-    const { name, password, email } = req.body;
+    const { name, username, password, email } = req.body;
+
     try {
         const lowerName = name.toLowerCase();
         const lowerEmail = email.toLowerCase();
-
-        // Check if user already exists and is verified
-        const existingEmail = await userModel.findOne({ email: lowerEmail });
-
-        if (existingEmail && existingEmail.isEmailVerified) {
-            return res.status(400).send({ message: `Email: ${lowerEmail} Already Exists` });
-        }
-
-        // If user exists but is not verified, update and resend verification email
-        if (existingEmail && !existingEmail.isEmailVerified) {
-            existingEmail.name = lowerName;
-            existingEmail.password = await bcrypt.hash(password, 10);
-            existingEmail.resetToken = null;
-            existingEmail.resetTokenExpiry = null;
-            await existingEmail.save();
-
-            await sendVerificationEmail(lowerEmail, lowerName);
-            return res.status(200).send({ message: "Verification email resent. Please verify your account." });
-        }
+        const lowerUsername = username.toLowerCase();
 
         // Validate password
         if (!password || password.length < 6) {
             return res.status(400).send({ message: "Password must be at least 6 characters long" });
         }
 
+        // Check if email already exists
+        const existingEmail = await userModel.findOne({ email: lowerEmail });
+
+        if (existingEmail) {
+            if (existingEmail.isEmailVerified) {
+                return res.status(400).send({ message: `Email: ${lowerEmail} already exists` });
+            } else {
+                // Check if the username is taken by someone else (exclude current user)
+                const usernameTaken = await userModel.findOne({
+                    username: lowerUsername,
+                    _id: { $ne: existingEmail._id }
+                });
+                if (usernameTaken) {
+                    return res.status(400).send({ message: `Username: ${lowerUsername} is already taken` });
+                }
+
+                // Update existing unverified user
+                existingEmail.name = lowerName;
+                existingEmail.username = lowerUsername;
+                existingEmail.password = await bcrypt.hash(password, 10);
+                existingEmail.resetToken = null;
+                existingEmail.resetTokenExpiry = null;
+                await existingEmail.save();
+
+                await sendVerificationEmail(lowerEmail, lowerName);
+                return res.status(200).send({ message: "Verification email resent. Please verify your account." });
+            }
+        }
+
+        // Check if username is taken (only now for new users)
+        const existingUsername = await userModel.findOne({ username: lowerUsername });
+        if (existingUsername) {
+            return res.status(400).send({ message: `Username: ${lowerUsername} already exists` });
+        }
+
         // Create new user
         const hashPassword = await bcrypt.hash(password, 10);
         const newUser = new userModel({
             name: lowerName,
+            username: lowerUsername,
             email: lowerEmail,
             password: hashPassword,
-            isEmailVerified: false, // Mark as unverified
+            isEmailVerified: false,
         });
 
         await newUser.save();
-
-        // Send verification email
         await sendVerificationEmail(lowerEmail, lowerName);
+
         return res.status(200).send({ message: "Verification email sent. Please verify your account." });
 
     } catch (error) {
         console.error(error);
-        res.status(500).send({ message: "Server error", error });
-    }
-}
-
-async function login(req, res) {
-    const { email, password } = req.body;
-    try {
-        const lowerEmail = email.toLowerCase();
-        const user = await userModel.findOne({ email: lowerEmail });
-
-        if (!user) {
-            return res.status(401).send({ message: "Invalid Email or Password" });
-        }
-
-        if (!user.isEmailVerified) {
-            return res.status(401).send({ message: "Please verify your email to login" });
-        }
-
-        const isPasswordMatch = await bcrypt.compare(password, user.password);
-        if (!isPasswordMatch) {
-            return res.status(401).send({ message: "Invalid Email or Password" });
-        }
-
-        const token = jwt.sign(
-            { userId: user._id, email: user.email },
-            process.env.JWT_SECRET,
-            { expiresIn: "24h" }
-        );
-
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV !== "development",
-            sameSite: "None",
-            domain: process.env.NODE_ENV === "development" ? "localhost" : process.env.DOMAIN,
-            maxAge: 24 * 60 * 60 * 1000,
-        });
-
-        return res.status(200).send({
-            message: "Login Successful",
-            user: {
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                tasksAssigned: user.tasksAssigned,
-            },
-        });
-
-    } catch (error) {
-        console.error("Login Error:", error);
         return res.status(500).send({ message: "Server error", error });
     }
 }
+
+ async function login (req, res){
+    const { email, password } = req.body;
+  
+    try {
+      // Check if user exists
+      const user = await userModel.findOne({ email });
+      if (!user) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+  
+      // Validate password
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+  
+      // Generate JWT Token
+      const token = jwt.sign(
+        { userId: user._id, username: user.username },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+  
+      // Set token in HTTP-only cookie
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production", // true in production
+        sameSite: "Strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+  
+      // Send response
+      res.status(200).json({
+        message: "Login successful",
+        user: {
+          _id: user._id,
+          username: user.username,
+          email: user.email,
+        },
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  };
+  
 
 function logOut(req, res){
     res.clearCookie("token", {

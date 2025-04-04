@@ -7,6 +7,12 @@ const userSchema = new mongoose.Schema({
     default: () => uuidv4(), // Generates unique user ID
     unique: true,
   },
+  username: {
+    type: String,
+    required: true,
+    unique: true, // Ensures username is unique
+    index: true   // Optional: makes lookups faster
+  },
   name: {
     type: String,
     required: true, // User's name
