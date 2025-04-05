@@ -2,37 +2,48 @@ const Post = require("../models/postModel");
 const userModel = require("../models/userModel");
 
 async function createPost(req, res) {
-    console.log("User from request:", req.user); // ✅ Debugging log
+  console.log("User from request:", req.user); // ✅ Debugging log
 
-    if (!req.user) {
-        return res.status(401).json({ message: "User not authenticated" });
+  if (!req.user) {
+    return res.status(401).json({ message: "User not authenticated" });
+  }
+
+  try {
+    const { content } = req.body;
+
+    let imageUrl = "default.png"; // Fallback if no image
+
+    if (req.file && req.file.path) {
+      // Multer + Cloudinary stores image info in req.file.path
+      imageUrl = req.file.path; // This is already the Cloudinary secure_url if you're using cloudinaryStorage
     }
 
-    try {
-        const { content } = req.body;
+    const newPost = new Post({
+      content,
+      user: req.user._id,
+      postpic: imageUrl,
+    });
 
-        // Create new post
-        const newPost = new Post({
-            content,
-            user: req.user._id,
-            postpic: req.file ? req.file.path : "default.png",
-        });
+    await newPost.save();
 
-        await newPost.save();
+    // Update user's post list
+    await userModel.findByIdAndUpdate(
+      req.user._id,
+      { $push: { posts: newPost._id } },
+      { new: true }
+    );
 
-        // ✅ Update the user's posts array
-        await userModel.findByIdAndUpdate(
-            req.user._id,
-            { $push: { posts: newPost._id } }, // ✅ Add post to user
-            { new: true }
-        );
-
-        res.status(201).json({ message: "Post created successfully", post: newPost });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Server error", error });
-    }
+    res.status(201).json({
+      message: "Post created successfully",
+      post: newPost,
+    });
+  } catch (error) {
+    console.error("Error in createPost:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
 }
+
+module.exports = { createPost };
 
 async function getAllPosts(req, res) {
     try {
@@ -141,30 +152,33 @@ async function likeUnlikePost(req, res) {
         const { postId } = req.params;
         const userId = req.user._id;
 
-        const post = await Post.findById(postId);
+        const post = await Post.findById(postId).populate("user").populate("comments"); // Optional: populate for live updates
+
         if (!post) {
             return res.status(404).json({ message: "Post not found" });
         }
 
-        // Check if user has already liked the post
-        const likedIndex = post.likes.indexOf(userId);
+        const likedIndex = post.likes.indexOf(userId.toString());
 
         if (likedIndex === -1) {
-            // Like the post
             post.likes.push(userId);
-            await post.save();
-            return res.status(200).json({ message: "Post liked", post });
         } else {
-            // Unlike the post
             post.likes.splice(likedIndex, 1);
-            await post.save();
-            return res.status(200).json({ message: "Post unliked", post });
         }
+
+        await post.save();
+
+        return res.status(200).json({
+            message: likedIndex === -1 ? "Post liked" : "Post unliked",
+            likes: post.likes, // 👈 Send updated likes array
+            postId: post._id
+        });
     } catch (error) {
         console.error("Error liking/unliking post:", error);
         res.status(500).json({ message: "Server error", error });
     }
 }
+
 
 async function addComment(req, res) {
     try {

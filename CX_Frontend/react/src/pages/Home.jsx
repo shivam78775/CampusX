@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { FiPlus } from "react-icons/fi";
 import StorySection from "../components/StorySection";
 import Footer from "../components/Footer";
 import Post from "../components/Post";

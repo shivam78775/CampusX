@@ -24,7 +24,6 @@ const postSchema = new mongoose.Schema({
     }],
     postpic: {
         type: String,
-        default: "default.png"
     }
 });
 
