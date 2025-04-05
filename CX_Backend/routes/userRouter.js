@@ -1,5 +1,5 @@
 const express = require('express');
-const {register, verifyUser, login, logOut, resetPasswordRequest, resetPassword} = require('../controllers/userController');
+const {register, verifyUser, login, logOut, resetPasswordRequest, resetPassword, getUserProfile} = require('../controllers/userController');
 const {createPost} = require('../controllers/postController');
 const verifyUsery = require('../middlewares/userAuth');
 
@@ -16,5 +16,6 @@ userRouter.get("/verify-user", verifyUsery, verifyUser);
 userRouter.post("/reset-password-request", resetPasswordRequest);
 userRouter.post("/reset-password", resetPassword);
 userRouter.post("/create/post", verifyUser, createPost);
+userRouter.get('/profile/:username',verifyUser, getUserProfile);
 
 module.exports = userRouter;

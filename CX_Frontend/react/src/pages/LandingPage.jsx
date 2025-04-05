@@ -20,18 +20,18 @@ const LandingPage = () => {
 
       {/* Call to Action */}
       <div className="flex items-center justify-center space-x-4 mt-6">
-        <button
+        <span
           className="w-80 font-bold rounded-full text-gray-900 py-3 px-6 transition-all duration-300 bg-gradient-to-r from-[#EEFF2D] to-[#D5F84F] hover:opacity-80"
           onClick={() => navigate("/signup")} 
         >
           Create Account
-        </button>
-        <button
-          className="w-80 font-bold rounded-full text-white py-3 px-6 transition-all duration-300 bg-transparent border border-gray-900 hover:opacity-80"
+        </span>
+        <span
+          className="w-80 font-bold rounded-full  py-3 px-6 transition-all duration-300 bg-black text-white border border-gray-900 hover:opacity-80"
           onClick={() => navigate("/login")} // 
         >
           Login
-        </button>
+        </span>
       </div>
     </div>
   );

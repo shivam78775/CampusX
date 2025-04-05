@@ -11,7 +11,7 @@ async function createPost(req, res) {
   try {
     const { content } = req.body;
 
-    let imageUrl = "default.png"; // Fallback if no image
+    let imageUrl; // Fallback if no image
 
     if (req.file && req.file.path) {
       // Multer + Cloudinary stores image info in req.file.path
