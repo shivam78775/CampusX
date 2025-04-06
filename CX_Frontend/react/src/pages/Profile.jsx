@@ -3,14 +3,9 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import { Card } from "../components/Card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/Tabs";
-import { Avatar} from "../components/Avatar";
+import { Avatar } from "../components/Avatar";
 import { Grid3X3, Video, FileText } from "lucide-react"; // FileText for blogs
 import Footer from "../components/Footer";
-import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  MoreHorizontalCircle01Icon,
-  UserEdit01Icon,
-} from "@hugeicons/core-free-icons";
 
 export default function ProfilePage() {
   const { username } = useParams();
@@ -19,10 +14,10 @@ export default function ProfilePage() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [loggedInUserId, setLoggedInUserId] = useState(null);
 
-  // default image to detect "blog-type" post
   const defaultPostPic = "default.png";
-
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -32,6 +27,8 @@ export default function ProfilePage() {
         );
         setUser(res.data.user);
         setPosts(res.data.posts);
+        setIsFollowing(res.data.isFollowing);
+        setLoggedInUserId(res.data.loggedInUserId);
         setLoading(false);
       } catch (err) {
         setError("Failed to load profile.");
@@ -43,12 +40,33 @@ export default function ProfilePage() {
     if (username) fetchProfile();
   }, [username]);
 
+  const handleFollowToggle = async () => {
+    try {
+      const res = await axios.post(
+        `http://localhost:4444/api/v1/user/follow/${user._id}`,
+        {}, // no body needed if you're passing ID in URL
+        { withCredentials: true }
+      );
+
+      if (res.data.success) {
+        setIsFollowing(!isFollowing);
+        setUser((prev) => ({
+          ...prev,
+          followersCount: isFollowing
+            ? prev.followersCount - 1
+            : prev.followersCount + 1,
+        }));
+      }
+    } catch (err) {
+      console.error("Follow/Unfollow failed", err);
+    }
+  };
+
   if (loading)
     return <div className="text-center mt-10">Loading profile...</div>;
   if (error)
     return <div className="text-center text-red-500 mt-10">{error}</div>;
 
-  // Separate posts: imagePosts and blogPosts
   const imagePosts = posts.filter(
     (post) => post.postpic && post.postpic !== defaultPostPic
   );
@@ -72,7 +90,6 @@ export default function ProfilePage() {
               alt="Avatar"
               className="w-24 h-24 rounded-full border-4 border-white absolute left-4 -bottom-12"
             />
-            
           </div>
 
           <div className="mt-16 px-4 text-left">
@@ -82,9 +99,15 @@ export default function ProfilePage() {
                 <p className="text-sm text-gray-500">@{user.username}</p>
                 <p className="text-sm mt-1 text-gray-600">🎓 CampusX Student</p>
               </div>
-              <span className="bg-gradient-to-r from-[#eafe31] to-[#d2f93c] text-black rounded-full px-4 py-1">
-                Follow
-              </span>
+
+              {user._id !== loggedInUserId && (
+                <span
+                  className="bg-gradient-to-r from-[#eafe31] to-[#d2f93c] text-black rounded-full px-4 py-1 cursor-pointer"
+                  onClick={handleFollowToggle}
+                >
+                  {isFollowing ? "Unfollow" : "Follow"}
+                </span>
+              )}
             </div>
 
             {/* Stats */}
@@ -171,7 +194,6 @@ export default function ProfilePage() {
                       key={post._id}
                       className="bg-gray-50 rounded-xl shadow-sm text-black min-w-[350px] mb-11"
                     >
-                      {/* Post Header */}
                       <div className="flex items-center p-3">
                         <Avatar className="w-10 h-10 mr-3" />
                         <div>
@@ -180,13 +202,11 @@ export default function ProfilePage() {
                           </p>
                           <p className="text-xs text-gray-500 mx-2">
                             {post?.date
-                              ? getRelativeTime(post.date)
+                              ? new Date(post.date).toLocaleString()
                               : "• Just now"}
                           </p>
                         </div>
                       </div>
-
-                      {/* Post Image (optional) */}
                       {post?.postpic && post.postpic !== "default" && (
                         <img
                           src={post.postpic}
@@ -194,8 +214,6 @@ export default function ProfilePage() {
                           className="w-full object-cover"
                         />
                       )}
-
-                      {/* Post Body */}
                       <div className="p-3">
                         <p className="text-sm">
                           <span className="font-semibold">
@@ -203,31 +221,6 @@ export default function ProfilePage() {
                           </span>{" "}
                           {post?.caption || "No description."}
                         </p>
-                        {/* Optional: Add interactions if needed */}
-                        {/* 
-          <div className="flex space-x-4 my-2 justify-between items-center">
-            <div className="flex gap-2">
-              <HugeiconsIcon
-                icon={ThumbsUpIcon}
-                className="cursor-pointer text-black"
-              />
-              <p className="text-sm pt-1 text-gray-500">{post.likes?.length || 0} Likes</p>
-            </div>
-            <div className="flex gap-2">
-              <HugeiconsIcon
-                icon={MessageMultiple02Icon}
-                className="text-black cursor-pointer"
-              />
-              <p className="text-sm pt-1 text-gray-500 cursor-pointer">
-                {post.comments?.length || 0} Comments
-              </p>
-            </div>
-            <HugeiconsIcon
-              icon={Share01Icon}
-              className="text-black cursor-pointer"
-            />
-          </div>
-          */}
                       </div>
                     </div>
                   ))
@@ -241,4 +234,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-   
