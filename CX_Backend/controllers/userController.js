@@ -207,51 +207,51 @@ async function resetPasswordRequest(req, res) {
 
 async function resetPassword(req, res) {
     const { token, newPassword } = req.body;
-  
+
     if (!token || !newPassword) {
-      return res.status(400).send({ message: "Token and new password are required" });
+        return res.status(400).send({ message: "Token and new password are required" });
     }
-  
+
     if (newPassword.length < 6) {
-      return res.status(400).send({ message: "Password must be at least 6 characters" });
+        return res.status(400).send({ message: "Password must be at least 6 characters" });
     }
-  
+
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      console.log("Decoded token:", decoded);
-  
-      const user = await userModel.findOne({
-        email: decoded.email,
-        resetToken: token,
-        resetTokenExpiry: { $gt: Date.now() },
-      });
-  
-      if (!user) {
-        console.error("User not found or token expired");
-        return res.status(400).send({ message: "Invalid or expired token" });
-      }
-  
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-      user.password = hashedPassword;
-      user.resetToken = null;
-      user.resetTokenExpiry = null;
-  
-      try {
-        await user.save();
-        return res.status(200).send({ message: "Password reset successfully" });
-      } catch (saveError) {
-        console.error("Error saving user:", saveError);
-        return res.status(500).send({ message: "Error saving user", error: saveError });
-      }
-  
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log("Decoded token:", decoded);
+
+        const user = await userModel.findOne({
+            email: decoded.email,
+            resetToken: token,
+            resetTokenExpiry: { $gt: Date.now() },
+        });
+
+        if (!user) {
+            console.error("User not found or token expired");
+            return res.status(400).send({ message: "Invalid or expired token" });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        user.resetToken = null;
+        user.resetTokenExpiry = null;
+
+        try {
+            await user.save();
+            return res.status(200).send({ message: "Password reset successfully" });
+        } catch (saveError) {
+            console.error("Error saving user:", saveError);
+            return res.status(500).send({ message: "Error saving user", error: saveError });
+        }
+
     } catch (error) {
-      if (error.name === "TokenExpiredError") {
-        return res.status(400).send({ message: "Token has expired" });
-      }
-      console.error("Reset Password Error:", error);
-      return res.status(500).send({ message: "Internal Server Error", error });
+        if (error.name === "TokenExpiredError") {
+            return res.status(400).send({ message: "Token has expired" });
+        }
+        console.error("Reset Password Error:", error);
+        return res.status(500).send({ message: "Internal Server Error", error });
     }
-  }
+}
 
 async function getUserProfile(req, res) {
     try {
@@ -265,8 +265,8 @@ async function getUserProfile(req, res) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        const posts = await postModel.find({ user: user._id }) 
-            .sort({ date: -1 }) 
+        const posts = await postModel.find({ user: user._id })
+            .sort({ date: -1 })
             .select('_id content postpic likes comments date');
 
         const formattedPosts = posts.map(post => ({
@@ -295,6 +295,27 @@ async function getUserProfile(req, res) {
     }
 };
 
+async function searchUser(req, res) {
+    const { username } = req.query;
+    if (!username) return res.json([]);
+  
+    try {
+      console.log("🔍 Searching for username:", username);
+  
+      const users = await userModel.find({
+        username: { $regex: username.trim(), $options: 'i' }, // 👈 Partial + case-insensitive
+      }).select("username name profilepic");
+  
+      console.log("✅ Users found:", users.length);
+      res.json(users);
+    } catch (err) {
+      console.error("❌ Error searching user:", err);
+      res.status(500).json([]);
+    }
+  }
+  
+  
 
 
-module.exports = { register, verifyUser, login, logOut, resetPasswordRequest, resetPassword, getUserProfile };
+
+module.exports = { register, verifyUser, login, logOut, resetPasswordRequest, resetPassword, getUserProfile, searchUser };

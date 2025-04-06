@@ -9,6 +9,7 @@ import Profile from './pages/Profile';
 import VerifyEmail from './pages/VerifyEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import SearchUsers from './pages/SearchUsers';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/create-post" element={<CreatePostPage />} />
         <Route path="/profile/:username" element={<Profile />} />
+        <Route path="/search/users" element={<SearchUsers />} />
         <Route path="/verify-email/" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword/>} />

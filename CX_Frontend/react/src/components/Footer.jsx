@@ -27,7 +27,7 @@ const Footer = () => {
 
       {/* Search */}
       <div
-        onClick={() => navigate("/search")}
+        onClick={() => navigate("/search/users")}
         className="flex flex-col items-center justify-center text-gray-400 cursor-pointer"
       >
         <FiSearch className="h-6 w-6" />
