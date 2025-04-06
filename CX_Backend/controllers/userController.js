@@ -6,73 +6,75 @@ const userModel = require("../models/userModel");
 const postModel = require("../models/postModel");
 
 async function register(req, res) {
-    const { name, username, password, email } = req.body;
-
+    const { name, username, email, password } = req.body;
+  
     try {
-        const lowerName = name.toLowerCase();
-        const lowerEmail = email.toLowerCase();
-        const lowerUsername = username.toLowerCase();
-
-        // Validate password
-        if (!password || password.length < 6) {
-            return res.status(400).send({ message: "Password must be at least 6 characters long" });
-        }
-
-        // Check if email already exists
-        const existingEmail = await userModel.findOne({ email: lowerEmail });
-
-        if (existingEmail) {
-            if (existingEmail.isEmailVerified) {
-                return res.status(400).send({ message: `Email: ${lowerEmail} already exists` });
-            } else {
-                // Check if the username is taken by someone else (exclude current user)
-                const usernameTaken = await userModel.findOne({
-                    username: lowerUsername,
-                    _id: { $ne: existingEmail._id }
-                });
-                if (usernameTaken) {
-                    return res.status(400).send({ message: `Username: ${lowerUsername} is already taken` });
-                }
-
-                // Update existing unverified user
-                existingEmail.name = lowerName;
-                existingEmail.username = lowerUsername;
-                existingEmail.password = await bcrypt.hash(password, 10);
-                existingEmail.resetToken = null;
-                existingEmail.resetTokenExpiry = null;
-                await existingEmail.save();
-
-                await sendVerificationEmail(lowerEmail, lowerName);
-                return res.status(200).send({ message: "Verification email resent. Please verify your account." });
-            }
-        }
-
-        // Check if username is taken (only now for new users)
-        const existingUsername = await userModel.findOne({ username: lowerUsername });
-        if (existingUsername) {
-            return res.status(400).send({ message: `Username: ${lowerUsername} already exists` });
-        }
-
-        // Create new user
-        const hashPassword = await bcrypt.hash(password, 10);
-        const newUser = new userModel({
-            name: lowerName,
-            username: lowerUsername,
-            email: lowerEmail,
-            password: hashPassword,
-            isEmailVerified: false,
+      const lowerName = name.toLowerCase();
+      const lowerEmail = email.toLowerCase();
+      const lowerUsername = username.toLowerCase();
+  
+      if (!password || password.length < 6) {
+        return res.status(400).send({ message: "Password must be at least 6 characters long" });
+      }
+  
+      const existingEmail = await userModel.findOne({ email: lowerEmail });
+  
+      // ✅ If email exists and is verified
+      if (existingEmail && existingEmail.isEmailVerified) {
+        return res.status(400).send({ message: `Email: ${lowerEmail} already exists` });
+      }
+  
+      // ✅ If user exists but not verified
+      if (existingEmail && !existingEmail.isEmailVerified) {
+        // Check if the username is taken by someone else (excluding this user)
+        const usernameTaken = await userModel.findOne({
+          username: lowerUsername,
+          _id: { $ne: existingEmail._id }
         });
-
-        await newUser.save();
+  
+        if (usernameTaken) {
+          return res.status(400).send({ message: `Username: ${lowerUsername} is already taken` });
+        }
+  
+        existingEmail.name = lowerName;
+        existingEmail.username = lowerUsername;
+        existingEmail.password = await bcrypt.hash(password, 10);
+        existingEmail.resetToken = null;
+        existingEmail.resetTokenExpiry = null;
+        existingEmail.createdAt = new Date(); // Update timestamp
+        await existingEmail.save();
+  
         await sendVerificationEmail(lowerEmail, lowerName);
-
-        return res.status(200).send({ message: "Verification email sent. Please verify your account." });
-
+        return res.status(200).send({ message: "Verification email resent. Please verify your account." });
+      }
+  
+      // ✅ Check username availability for new user
+      const usernameExists = await userModel.findOne({ username: lowerUsername });
+      if (usernameExists) {
+        return res.status(400).send({ message: `Username: ${lowerUsername} already exists` });
+      }
+  
+      // ✅ Register new user
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const newUser = new userModel({
+        name: lowerName,
+        username: lowerUsername,
+        email: lowerEmail,
+        password: hashedPassword,
+        isEmailVerified: false,
+        createdAt: new Date(), // store creation time
+      });
+  
+      await newUser.save();
+      await sendVerificationEmail(lowerEmail, lowerName);
+  
+      return res.status(200).send({ message: "Verification email sent. Please verify your account." });
+  
     } catch (error) {
-        console.error(error);
-        return res.status(500).send({ message: "Server error", error });
+      console.error(error);
+      return res.status(500).send({ message: "Server error", error });
     }
-}
+  }
 
 async function login(req, res) {
     const { email, password } = req.body;
@@ -80,8 +82,13 @@ async function login(req, res) {
     try {
         // Check if user exists
         const user = await userModel.findOne({ email });
+        
         if (!user) {
             return res.status(401).json({ message: "Invalid email or password" });
+        }
+
+        if(!user.isEmailVerified){
+            return res.status(401).json({message: "Email not verified, Go back to signup page to register!"})
         }
 
         // Validate password
@@ -323,5 +330,87 @@ async function loggedInUserProfile(req, res) {
 };
 
 
+// Follow a user
+async function toggleFollow (req, res){
+    const currentUserId = req.user._id;
+    const targetUserId = req.params.id;
+  
+    if (currentUserId.toString() === targetUserId) {
+      return res.status(400).json({ message: "You can't follow yourself." });
+    }
+  
+    try {
+      const currentUser = await userModel.findById(currentUserId);
+      const targetUser = await userModel.findById(targetUserId);
+  
+      if (!targetUser) {
+        return res.status(404).json({ message: "User to follow not found." });
+      }
+  
+      const isFollowing = currentUser.following.includes(targetUserId);
+  
+      if (isFollowing) {
+        // Unfollow
+        currentUser.following.pull(targetUserId);
+        targetUser.followers.pull(currentUserId);
+        await currentUser.save();
+        await targetUser.save();
+        return res.status(200).json({ message: "User unfollowed." });
+      } else {
+        // Follow
+        currentUser.following.push(targetUserId);
+        targetUser.followers.push(currentUserId);
+        await currentUser.save();
+        await targetUser.save();
+        return res.status(200).json({ message: "User followed." });
+      }
+  
+    } catch (error) {
+      console.error("Toggle follow error:", error);
+      res.status(500).json({ message: "Server error", error });
+    }
+  };
+  
+  
+  // Get following list
+async function getFollowing(req, res) {
+    try {
+      const currentUser = await userModel.findById(req.user._id)
+        .populate("following", "username name profilepic");
+  
+      if (!currentUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+  
+      res.status(200).json(currentUser.following);
+    } catch (err) {
+      console.error("Error fetching following list:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+  
+  // Get followers list
+  async function getFollowers (req, res){
+    try {
+      const currentUser = await userModel.findById(req.user._id).populate("followers", "username name profilePic");
+      res.status(200).json(currentUser.followers);
+    } catch (err) {
+      res.status(500).json({ message: "Server error" });
+    }
+  };
+  
+  // Get total likes across all posts
+  async function getTotalLikes (req, res){
+    try {
+      const posts = await postModel.find({ user: req.user._id });
+      const totalLikes = posts.reduce((acc, post) => acc + (post.likes?.length || 0), 0);
+      res.status(200).json({ totalLikes });
+    } catch (err) {
+      console.error("Error fetching likes:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  };
 
-module.exports = { register, verifyUser, login, logOut, resetPasswordRequest, resetPassword, getUserProfile, searchUser, loggedInUserProfile };
+
+
+module.exports = { register, verifyUser, login, logOut, resetPasswordRequest, resetPassword, getUserProfile, searchUser, loggedInUserProfile, toggleFollow, getFollowing, getFollowers, getTotalLikes };

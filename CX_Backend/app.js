@@ -6,6 +6,7 @@ const userRouter = require("./routes/userRouter");
 const authRouter = require("./routes/authRouter");
 const postRouter = require("./routes/postRouter");
 const { startServer } = require("./connection/DB");
+require("./cron/cleanupUnverifiedUsers");
 
 dotenv.config();
 
