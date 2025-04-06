@@ -6,6 +6,7 @@ import Signup from "./pages/Signup";
 import Home from "./pages/Home";
 import CreatePostPage from './pages/CreatePost';
 import Profile from './pages/Profile';
+import UserProfile from './pages/UserProfile';
 import VerifyEmail from './pages/VerifyEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
@@ -21,6 +22,7 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/create-post" element={<CreatePostPage />} />
         <Route path="/profile/:username" element={<Profile />} />
+        <Route path="/profile" element={<UserProfile />} />
         <Route path="/search/users" element={<SearchUsers />} />
         <Route path="/verify-email/" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

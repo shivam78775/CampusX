@@ -120,7 +120,6 @@ async function login(req, res) {
     }
 };
 
-
 function logOut(req, res) {
     res.clearCookie("token", {
         httpOnly: true,
@@ -298,24 +297,31 @@ async function getUserProfile(req, res) {
 async function searchUser(req, res) {
     const { username } = req.query;
     if (!username) return res.json([]);
-  
+
     try {
-      console.log("🔍 Searching for username:", username);
-  
-      const users = await userModel.find({
-        username: { $regex: username.trim(), $options: 'i' }, // 👈 Partial + case-insensitive
-      }).select("username name profilepic");
-  
-      console.log("✅ Users found:", users.length);
-      res.json(users);
+        console.log("🔍 Searching for username:", username);
+
+        const users = await userModel.find({
+            username: { $regex: username.trim(), $options: 'i' }, // 👈 Partial + case-insensitive
+        }).select("username name profilepic");
+
+        console.log("✅ Users found:", users.length);
+        res.json(users);
     } catch (err) {
-      console.error("❌ Error searching user:", err);
-      res.status(500).json([]);
+        console.error("❌ Error searching user:", err);
+        res.status(500).json([]);
     }
-  }
-  
-  
+}
+
+async function loggedInUserProfile(req, res) {
+    try {
+        res.json(req.user);
+    } catch (error) {
+        console.error("Error fetching logged-in user:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
 
 
 
-module.exports = { register, verifyUser, login, logOut, resetPasswordRequest, resetPassword, getUserProfile, searchUser };
+module.exports = { register, verifyUser, login, logOut, resetPasswordRequest, resetPassword, getUserProfile, searchUser, loggedInUserProfile };

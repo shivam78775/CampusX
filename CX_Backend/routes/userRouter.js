@@ -1,5 +1,5 @@
 const express = require('express');
-const {register, verifyUser, login, logOut, resetPasswordRequest, resetPassword, getUserProfile, searchUser} = require('../controllers/userController');
+const {register, verifyUser, login, logOut, resetPasswordRequest, resetPassword, getUserProfile, searchUser, loggedInUserProfile} = require('../controllers/userController');
 const {createPost} = require('../controllers/postController');
 const verifyUsery = require('../middlewares/userAuth');
 
@@ -9,6 +9,7 @@ userRouter.get('/', (req, res) => {
     res.send('This is user router');
 });
 
+userRouter.get("/me", verifyUser, loggedInUserProfile);
 userRouter.post('/register', register);
 userRouter.post("/login", login); 
 userRouter.post("/logout", logOut); 

@@ -13,7 +13,7 @@ const { upload } = require('../config/cloudinary');
 
 const postRouter = express.Router();
 
-// 🟢 Routes
+
 postRouter.get('/all', verifyUser, getAllPosts);
 postRouter.post('/create', verifyUser, upload.single('postpic'), createPost);
 postRouter.get('/user/:userId', verifyUser, getUserPosts);
