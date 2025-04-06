@@ -207,40 +207,51 @@ async function resetPasswordRequest(req, res) {
 
 async function resetPassword(req, res) {
     const { token, newPassword } = req.body;
-
-    try {
-        if (!token) {
-            return res.status(401).send({ message: "Token Not Found" });
-        }
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        const user = await userModel.findOne({
-            email: decoded.email,
-            resetToken: token,
-            resetTokenExpiry: { $gt: Date.now() },
-        });
-
-        if (!user) {
-            return res.status(400).send({ message: "Invalid or expired token" });
-        }
-
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-        user.password = hashedPassword;
-        user.resetToken = null;
-        user.resetTokenExpiry = null;
-        await user.save();
-
-        return res.status(200).send({ message: "Password reset successfully" });
-
-    } catch (error) {
-        if (error.name === "TokenExpiredError") {
-            return res.status(400).send({ message: "Token expired" });
-        }
-        console.error("Reset Password Error:", error);
-        return res.status(500).send({ message: "Error resetting password", error });
+  
+    if (!token || !newPassword) {
+      return res.status(400).send({ message: "Token and new password are required" });
     }
-}
+  
+    if (newPassword.length < 6) {
+      return res.status(400).send({ message: "Password must be at least 6 characters" });
+    }
+  
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log("Decoded token:", decoded);
+  
+      const user = await userModel.findOne({
+        email: decoded.email,
+        resetToken: token,
+        resetTokenExpiry: { $gt: Date.now() },
+      });
+  
+      if (!user) {
+        console.error("User not found or token expired");
+        return res.status(400).send({ message: "Invalid or expired token" });
+      }
+  
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      user.password = hashedPassword;
+      user.resetToken = null;
+      user.resetTokenExpiry = null;
+  
+      try {
+        await user.save();
+        return res.status(200).send({ message: "Password reset successfully" });
+      } catch (saveError) {
+        console.error("Error saving user:", saveError);
+        return res.status(500).send({ message: "Error saving user", error: saveError });
+      }
+  
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        return res.status(400).send({ message: "Token has expired" });
+      }
+      console.error("Reset Password Error:", error);
+      return res.status(500).send({ message: "Internal Server Error", error });
+    }
+  }
 
 async function getUserProfile(req, res) {
     try {

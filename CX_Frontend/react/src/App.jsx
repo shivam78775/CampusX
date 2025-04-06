@@ -7,6 +7,8 @@ import Home from "./pages/Home";
 import CreatePostPage from './pages/CreatePost';
 import Profile from './pages/Profile';
 import VerifyEmail from './pages/VerifyEmail';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 function App() {
   return (
@@ -19,6 +21,8 @@ function App() {
         <Route path="/create-post" element={<CreatePostPage />} />
         <Route path="/profile/:username" element={<Profile />} />
         <Route path="/verify-email/" element={<VerifyEmail />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword/>} />
       </Routes>
     </Router>
   );

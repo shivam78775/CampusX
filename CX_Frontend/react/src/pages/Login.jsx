@@ -4,7 +4,7 @@ import {
   ArrowLeft02Icon,
   InformationCircleIcon,
 } from "@hugeicons/core-free-icons";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Logo from "../assets/alogo1.gif";
 
@@ -77,9 +77,16 @@ const Login = () => {
           className="w-full p-3 border rounded-md text-black focus:ring-2 focus:ring-yellow-500"
           required
         />
+        <span
+          onClick={() => navigate("/forgot-password")}
+          className="text-black mb-3 pb-5 cursor-pointer hover:underline"
+        >
+          Forgot Password?
+        </span>
+
         <button
           type="submit"
-          className="w-full py-3 text-black bg-gradient-to-r from-[#EEFF2D] to-[#D5F84F] rounded-md"
+          className="w-full py-3 mt-5 text-black bg-gradient-to-r from-[#EEFF2D] to-[#D5F84F] rounded-md"
         >
           Login
         </button>
