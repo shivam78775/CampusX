@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: "default.png",
   },
+  coverpic: {
+    type: String,
+    default: "default.png",
+  },
   bio: {
     type: String,
     default: "",

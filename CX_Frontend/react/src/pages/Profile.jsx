@@ -81,12 +81,12 @@ export default function ProfilePage() {
           {/* Cover and Avatar */}
           <div className="relative">
             <img
-              src="/cover-placeholder.jpg"
+              src={user.coverpic || "/default.png"}
               alt="Cover"
               className="w-full h-32 object-cover rounded-t-2xl"
             />
             <img
-              src={user.profilepic || "default.png"}
+              src={user.profilepic || "/default.png"}
               alt="Avatar"
               className="w-24 h-24 rounded-full border-4 border-white absolute left-4 -bottom-12"
             />
@@ -97,7 +97,7 @@ export default function ProfilePage() {
               <div>
                 <h2 className="text-xl font-bold">{user.name}</h2>
                 <p className="text-sm text-gray-500">@{user.username}</p>
-                <p className="text-sm mt-1 text-gray-600">🎓 CampusX Student</p>
+                <p className="text-sm mt-1 text-gray-600"> {user.bio || "🎓 CampusX Student" }</p>
               </div>
 
               {user._id !== loggedInUserId && (

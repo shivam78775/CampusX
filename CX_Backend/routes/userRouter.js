@@ -1,7 +1,8 @@
 const express = require('express');
-const { register, verifyUser, login, logOut, resetPasswordRequest, resetPassword, getUserProfile, searchUser, loggedInUserProfile, getFollowing, getFollowers, getTotalLikes, toggleFollow } = require('../controllers/userController');
+const { register, verifyUser, login, logOut, resetPasswordRequest, resetPassword, getUserProfile, searchUser, loggedInUserProfile, getFollowing, getFollowers, getTotalLikes, toggleFollow, updateProfile } = require('../controllers/userController');
 const { createPost } = require('../controllers/postController');
 const verifyUsery = require('../middlewares/userAuth');
+const { upload } = require('../config/cloudinary');
 
 const userRouter = express.Router();
 
@@ -18,11 +19,21 @@ userRouter.get('/search', verifyUser, searchUser);
 userRouter.post("/reset-password-request", resetPasswordRequest);
 userRouter.post("/reset-password", resetPassword);
 userRouter.post("/create/post", verifyUser, createPost);
-userRouter.get('/profile/:username', verifyUser, getUserProfile);
 userRouter.post('/follow/:id', verifyUser, toggleFollow);
-userRouter.get('/followers/:id',verifyUser, getFollowers);
-userRouter.get('/following/:id',verifyUser, getFollowing);
+userRouter.get('/followers/:id', verifyUser, getFollowers);
+userRouter.get('/following/:id', verifyUser, getFollowing);
 userRouter.get('/likes/:id', verifyUser, getTotalLikes);
+userRouter.put(
+    '/update-profile',
+    verifyUser,
+    upload.fields([
+        { name: 'profilepic', maxCount: 1 },
+        { name: 'coverpic', maxCount: 1 }
+    ]),
+    updateProfile
+);
+userRouter.get('/profile/:username', verifyUser, getUserProfile);
+
 
 
 module.exports = userRouter;

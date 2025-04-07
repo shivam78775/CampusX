@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const nodemailer = require('nodemailer');
+const cloudinary = require('../config/cloudinary');
 const { sendVerificationEmail } = require("../middlewares/sendVerificationEmail");
 const userModel = require("../models/userModel");
 const postModel = require("../models/postModel");
@@ -264,7 +265,7 @@ async function getUserProfile(req, res) {
     const { username } = req.params;
 
     const user = await userModel.findOne({ username })
-      .select('username name profilepic followers following posts')
+      .select('username name profilepic coverpic bio followers following posts')
       .populate('posts', '_id');
 
     if (!user) {
@@ -292,6 +293,8 @@ async function getUserProfile(req, res) {
         username: user.username,
         name: user.name,
         profilepic: user.profilepic,
+        coverpic: user.coverpic,
+        bio: user.bio,
         postsCount: user.posts.length,
         followersCount: user.followers.length,
         followingCount: user.following.length
@@ -332,6 +335,34 @@ async function loggedInUserProfile(req, res) {
   } catch (error) {
     console.error("Error fetching logged-in user:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const updateProfile = async (req, res) => {
+  try {
+    const { name, bio } = req.body;
+    const userId = req.user._id;
+    const user = await userModel.findById(userId);
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (req.files?.profilepic?.[0]?.path) {
+      user.profilepic = req.files.profilepic[0].path;
+    }
+
+    if (req.files?.coverpic?.[0]?.path) {
+      user.coverpic = req.files.coverpic[0].path;
+    }
+
+    if (name) user.name = name;
+    if (bio) user.bio = bio;
+
+    await user.save();
+
+    res.status(200).json({ message: 'Profile updated successfully', user });
+  } catch (error) {
+    console.error('Update error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -418,4 +449,4 @@ async function getTotalLikes(req, res) {
 
 
 
-module.exports = { register, verifyUser, login, logOut, resetPasswordRequest, resetPassword, getUserProfile, searchUser, loggedInUserProfile, toggleFollow, getFollowing, getFollowers, getTotalLikes };
+module.exports = { register, verifyUser, login, logOut, resetPasswordRequest, resetPassword, getUserProfile, searchUser, loggedInUserProfile, toggleFollow, getFollowing, getFollowers, getTotalLikes, updateProfile };

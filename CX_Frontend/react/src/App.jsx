@@ -13,6 +13,7 @@ import VerifyEmail from './pages/VerifyEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import SearchUsers from './pages/SearchUsers';
+import UpdateProfilePage from "./pages/UpdateProfilePage";
 
 function App() {
   useEffect(() => {
@@ -39,6 +40,7 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/create-post" element={<CreatePostPage />} />
         <Route path="/profile/:username" element={<Profile />} />
+        <Route path="/profile/update" element={<UpdateProfilePage />} />
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/search/users" element={<SearchUsers />} />
         <Route path="/verify-email/" element={<VerifyEmail />} />

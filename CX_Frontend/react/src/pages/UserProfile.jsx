@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/Tabs";
 import { Grid3X3, Video, FileText } from "lucide-react";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -11,6 +12,9 @@ import { Card } from "../components/Card";
 import Footer from "../components/Footer";
 
 export default function UserProfile() {
+
+   const navigate = useNavigate();
+
   const [user, setUser] = useState(null);
   const [imagePosts, setImagePosts] = useState([]);
   const [blogPosts, setBlogPosts] = useState([]);
@@ -68,6 +72,7 @@ export default function UserProfile() {
   if (loading) return <div className="text-center mt-20">Loading...</div>;
   if (!user)
     return <div className="text-center text-red-500 mt-20">User not found</div>;
+  
 
   return (
     <div className="min-h-screen w-screen flex justify-center bg-white overflow-x-hidden">
@@ -76,17 +81,22 @@ export default function UserProfile() {
           {/* Cover and Avatar */}
           <div className="relative">
             <img
-              src="/cover-placeholder.jpg"
+              src={user.coverpic || "/default.png"}
               alt="Cover"
               className="w-full h-32 object-cover rounded-t-2xl"
             />
             <img
-              src={user.profilepic || "default.png"}
+              src={user.profilepic || "/default.png"}
               alt="Avatar"
               className="w-24 h-24 rounded-full border-4 border-white absolute left-4 -bottom-12"
             />
             <div className="absolute top-2 right-2 flex gap-3 mx-3 mt-3">
-              <HugeiconsIcon icon={UserEdit01Icon} />
+              <span onClick={() => navigate("/profile/update")}>
+                <HugeiconsIcon
+                  icon={UserEdit01Icon}
+                  className="cursor-pointer"
+                />
+              </span>
               <HugeiconsIcon icon={MoreHorizontalCircle01Icon} fill="black" />
             </div>
           </div>
@@ -96,9 +106,10 @@ export default function UserProfile() {
               <div>
                 <h2 className="text-xl font-bold">{user.name}</h2>
                 <p className="text-sm text-gray-500">@{user.username}</p>
-                <p className="text-sm mt-1 text-gray-600">🎓 CampusX Student</p>
+                <p className="text-sm mt-1 text-gray-600">
+                  {user.bio || "🎓 CampusX Student"}
+                </p>
               </div>
-              
             </div>
 
             {/* Stats */}
