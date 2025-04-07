@@ -146,13 +146,12 @@ async function deletePost(req, res) {
         res.status(500).json({ message: "Server error", error });
     }
 }
-
 async function likeUnlikePost(req, res) {
     try {
         const { postId } = req.params;
         const userId = req.user._id;
 
-        const post = await Post.findById(postId).populate("user").populate("comments"); // Optional: populate for live updates
+        const post = await Post.findById(postId).populate("user").populate("comments");
 
         if (!post) {
             return res.status(404).json({ message: "Post not found" });
@@ -168,16 +167,25 @@ async function likeUnlikePost(req, res) {
 
         await post.save();
 
+        // Real-time emit using io
+        const io = req.app.get("io"); // Get io instance set in server.js
+        io.emit("post-liked", {
+            postId: post._id,
+            updatedLikes: post.likes,
+        });
+
         return res.status(200).json({
             message: likedIndex === -1 ? "Post liked" : "Post unliked",
-            likes: post.likes, // 👈 Send updated likes array
+            likes: post.likes,
             postId: post._id
         });
-    } catch (error) {
-        console.error("Error liking/unliking post:", error);
-        res.status(500).json({ message: "Server error", error });
+    } catch (error) {  
+        console.error("Error liking/unliking post:", error.message);
+        console.error(error.stack); // logs full trace
+        res.status(500).json({ message: "Server error", error: error.message });
     }
 }
+
 
 
 async function addComment(req, res) {

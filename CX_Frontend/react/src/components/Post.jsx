@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import socket from "../socket";
 import axios from "axios";
 import { Avatar } from "./Avatar";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -14,13 +15,23 @@ export default function Post({ post, currentUserId }) {
   const [isLiked, setIsLiked] = useState(false);
 
   useEffect(() => {
-    if (likes.includes(currentUserId)) {
-      setIsLiked(true);
-    } else {
-      setIsLiked(false);
-    }
+    setIsLiked(likes.includes(currentUserId));
   }, [likes, currentUserId]);
 
+  useEffect(() => {
+    const handlePostLiked = ({ postId, updatedLikes }) => {
+      if (postId === post._id) {
+        setLikes(updatedLikes);
+      }
+    };
+  
+    socket.on("post-liked", handlePostLiked);
+  
+    return () => {
+      socket.off("post-liked", handlePostLiked);
+    };
+  }, [post._id]);
+  
   function getRelativeTime(date) {
     const now = new Date();
     const postDate = new Date(date);
@@ -49,8 +60,10 @@ export default function Post({ post, currentUserId }) {
         {},
         { withCredentials: true }
       );
+
       if (res.data.liked) {
         setLikes((prev) => [...prev, currentUserId]);
+        socket.emit("like-post", { postId: post._id }); // ✅ This must be emitted
       } else {
         setLikes((prev) => prev.filter((id) => id !== currentUserId));
       }
@@ -58,6 +71,7 @@ export default function Post({ post, currentUserId }) {
       console.error("Error liking post:", err);
     }
   };
+
   const handleComment = async () => {
     const text = prompt("Write your comment:");
     if (!text) return;

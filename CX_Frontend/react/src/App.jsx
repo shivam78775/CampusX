@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import socket from "./socket"; // make sure this is the correct import path
 import './App.css'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
@@ -13,6 +15,21 @@ import ResetPassword from './pages/ResetPassword';
 import SearchUsers from './pages/SearchUsers';
 
 function App() {
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("🟢 Socket connected:", socket.id);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("🔴 Socket disconnected");
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("disconnect");
+    };
+  }, []);
+
   return (
     <Router>
       <Routes>
@@ -26,7 +43,7 @@ function App() {
         <Route path="/search/users" element={<SearchUsers />} />
         <Route path="/verify-email/" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword/>} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
       </Routes>
     </Router>
   );
