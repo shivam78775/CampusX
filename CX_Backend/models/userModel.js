@@ -29,7 +29,6 @@ const userSchema = new mongoose.Schema({
   },
   profilepic: {
     type: String,
-    default: "default.png",
   },
   coverpic: {
     type: String,

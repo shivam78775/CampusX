@@ -1,8 +1,10 @@
 import React from "react";
-import { Avatar } from "./Avatar";
+import { useNavigate } from "react-router-dom";
 import PostFooter from "./PostFooter";
 
 export default function Post({ post, currentUserId }) {
+    const navigate = useNavigate();
+  
   function getRelativeTime(date) {
     const now = new Date();
     const postDate = new Date(date);
@@ -24,19 +26,33 @@ export default function Post({ post, currentUserId }) {
     return `• ${diffInYears} year${diffInYears > 1 ? "s" : ""} ago`;
   }
 
-  
+  function handleClickAccount(){
+     navigate(`/profile/${post?.user?.username}`);
+  }
 
   return (
     <div className="bg-gray-50 rounded-xl shadow-sm text-black min-w-[350px] mb-11">
       {/* Post Header */}
-      <div className="flex items-center p-3">
-        <Avatar className="w-10 h-10 mr-3" />
+      <div className="flex items-center gap-3 p-3">
+        <div className="w-10 h-10 rounded-full border border-gray-400 overflow-hidden">
+          <img
+            onClick={handleClickAccount}
+            className="w-10 object-cover cursor-pointer"
+            src={post?.user?.profilepic || "/default.png"}
+            alt={
+              post?.user?.username
+                ? `${post.user.username}'s profile`
+                : "User Profile"
+            }
+          />
+        </div>
+
         <div>
-          <p className="font-semibold text-black mx-2">
+          <p className="font-semibold text-black cursor-pointer" onClick={handleClickAccount}>
             @{post?.user?.username || "username"}
           </p>
-          <p className="text-xs text-gray-500 mx-2">
-            {post?.date ? getRelativeTime(post.date) : "•Just now"}
+          <p className="text-xs text-gray-500">
+            {post?.date ? getRelativeTime(post.date) : "• Just now"}
           </p>
         </div>
       </div>
@@ -52,8 +68,8 @@ export default function Post({ post, currentUserId }) {
           <span className="font-semibold">@{post?.user?.username}</span>{" "}
           {post?.content}
         </p>
-        <PostFooter post={post}/>
-        </div>
+        <PostFooter post={post} />
+      </div>
     </div>
   );
 }

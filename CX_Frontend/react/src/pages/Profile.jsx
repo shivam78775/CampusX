@@ -4,7 +4,7 @@ import axios from "axios";
 import { Card } from "../components/Card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/Tabs";
 import { Avatar } from "../components/Avatar";
-import { Grid3X3, Video, FileText } from "lucide-react"; // FileText for blogs
+import { Grid3X3, Video, FileText } from "lucide-react"; 
 import Footer from "../components/Footer";
 
 export default function ProfilePage() {
@@ -44,7 +44,7 @@ export default function ProfilePage() {
     try {
       const res = await axios.post(
         `http://localhost:4444/api/v1/user/follow/${user._id}`,
-        {}, // no body needed if you're passing ID in URL
+        {}, 
         { withCredentials: true }
       );
 
@@ -85,11 +85,13 @@ export default function ProfilePage() {
               alt="Cover"
               className="w-full h-32 object-cover rounded-t-2xl"
             />
+            <span className="w-24 h-24 overflow-hidden">
             <img
               src={user.profilepic || "/default.png"}
               alt="Avatar"
-              className="w-24 h-24 rounded-full border-4 border-white absolute left-4 -bottom-12"
-            />
+              className="w-24  rounded-full object-cover border-4 border-white absolute left-4 -bottom-12"
+              />
+              </span>
           </div>
 
           <div className="mt-16 px-4 text-left">

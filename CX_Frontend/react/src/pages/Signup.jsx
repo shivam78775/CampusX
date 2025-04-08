@@ -27,7 +27,7 @@ const Signup = () => {
     e.preventDefault();
   
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
-    console.log("Backend URL:", backendUrl); // debug
+    console.log("Backend URL:", backendUrl); 
   
     try {
       const response = await axios.post(`${backendUrl}/api/v1/user/register`, formData);

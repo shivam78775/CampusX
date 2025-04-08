@@ -10,7 +10,7 @@ const ResetPassword = () => {
   const { resetPassword, loading } = useContext(AuthContext);
 
   useEffect(() => {
-    console.log("Token from URL:", token); // Debug log
+    console.log("Token from URL:", token); 
   }, [token]);
 
   const handleSubmit = async (e) => {

@@ -68,7 +68,7 @@ async function getAllPosts(req, res) {
         console.log("Fetching all posts...");
 
         const posts = await Post.find()
-        .populate("user", "username name email profilePic")
+        .populate("user", "username name email profilepic")
         // ✅ Include user profile picture
             .sort({ date: -1 });  // ✅ Latest posts first
 

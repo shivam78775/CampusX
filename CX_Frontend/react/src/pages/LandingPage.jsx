@@ -4,7 +4,7 @@ import Slideshow from "../components/Slideshow";
 import Logo from "../assets/Logo.png";
 
 const LandingPage = () => {
-  const navigate = useNavigate(); // ✅ Call the hook at the top
+  const navigate = useNavigate(); 
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100 p-4 w-screen">
@@ -22,13 +22,13 @@ const LandingPage = () => {
       <div className="flex items-center justify-center space-x-4 mt-6">
         <span
           className="w-80 font-bold rounded-full text-gray-900 py-3 px-6 transition-all duration-300 bg-gradient-to-r from-[#EEFF2D] to-[#D5F84F] hover:opacity-80"
-          onClick={() => navigate("/signup")} 
+          onClick={() => navigate("/signup")}
         >
           Create Account
         </span>
         <span
           className="w-80 font-bold rounded-full  py-3 px-6 transition-all duration-300 bg-black text-white border border-gray-900 hover:opacity-80"
-          onClick={() => navigate("/login")} // 
+          onClick={() => navigate("/login")} //
         >
           Login
         </span>

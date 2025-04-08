@@ -24,12 +24,12 @@ const Login = () => {
         `${import.meta.env.VITE_BACKEND_URL}/api/v1/user/login`,
         formData,
         {
-          withCredentials: true, // If your backend uses cookies
+          withCredentials: true,
         }
       );
 
       alert(response.data.message);
-      navigate("/home"); // Or to dashboard/home page
+      navigate("/home");
     } catch (error) {
       if (error.response?.data?.message) {
         alert(error.response.data.message);

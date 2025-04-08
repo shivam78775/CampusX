@@ -8,7 +8,7 @@ import Footer from "../components/Footer";
 
 export default function CreatePostPage() {
   const [content, setContent] = useState("");
-  const [hashtags, setHashtags] = useState(""); // 🔥 Hashtags state
+  const [hashtags, setHashtags] = useState(""); 
   const [image, setImage] = useState(null);
   const navigate = useNavigate();
 
@@ -26,7 +26,7 @@ export default function CreatePostPage() {
       : content.trim();
 
     const formData = new FormData();
-    formData.append("content", finalContent); // ✅ Combined content + tags
+    formData.append("content", finalContent); 
     if (image) formData.append("postpic", image);
 
     try {

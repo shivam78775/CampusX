@@ -4,7 +4,6 @@ import "swiper/css";
 import "swiper/css/pagination";
 import { Pagination, Autoplay } from "swiper/modules";
 
-// Import images
 import img1 from "../assets/lp1.png";
 import img2 from "../assets/lp2.png";
 import img3 from "../assets/lp3.png";

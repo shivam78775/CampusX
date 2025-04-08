@@ -19,7 +19,7 @@ const SearchUsers = () => {
     setLoading(true);
     try {
       const res = await axios.get(`http://localhost:4444/api/v1/user/search?username=${query}`, {
-        withCredentials: true, // ✅ Send cookies
+        withCredentials: true, 
       });
   
       if (Array.isArray(res.data)) {
@@ -39,7 +39,7 @@ const SearchUsers = () => {
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       handleSearch();
-    }, 500); // debounce
+    }, 500); 
 
     return () => clearTimeout(delayDebounce);
   }, [query]);

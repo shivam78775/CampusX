@@ -4,6 +4,8 @@ import Footer from "../components/Footer";
 import Post from "../components/Post";
 import Logo from "../assets/Logo.png";
 import axios from "axios";
+import {  MessengerIcon, Notification03Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 export default function HomePage() {
   const [posts, setPosts] = useState([]);
@@ -12,8 +14,8 @@ export default function HomePage() {
     const fetchPosts = async () => {
       try {
         const res = await axios.get("http://localhost:4444/api/v1/post/all", {
-          withCredentials: true, // 🔥 IMPORTANT: This sends the cookie!
-        }); // Update URL if needed
+          withCredentials: true, 
+        }); 
         setPosts(res.data);
       } catch (error) {
         console.error("Error fetching posts:", error);
@@ -31,8 +33,8 @@ export default function HomePage() {
           <div className="flex items-center justify-between px-4 py-3 border-b">
             <img src={Logo} alt="CampusX Logo" className="h-20" />
             <div className="flex space-x-3">
-              <span className="text-lg">🔔</span>
-              <span className="text-lg">✉️</span>
+              <span className="text-black bg-gray-200 rounded-full p-2"><HugeiconsIcon icon={Notification03Icon} /></span>
+              <span className="text-black bg-gray-200 rounded-full p-2"><HugeiconsIcon icon={MessengerIcon} /></span>
             </div>
           </div>
 

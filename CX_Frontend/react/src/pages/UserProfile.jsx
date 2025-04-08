@@ -27,19 +27,16 @@ export default function UserProfile() {
       try {
         axios.defaults.withCredentials = true;
 
-        // Step 1: Fetch logged-in user data
         const { data } = await axios.get(
           "http://localhost:4444/api/v1/user/me"
         );
         setUser(data);
 
-        // Step 2: Fetch posts created by this user using their ID
         const res = await axios.get(
           `http://localhost:4444/api/v1/post/user/${data._id}`
         );
         const allPosts = res.data || [];
 
-        // Split posts into imagePosts and blogPosts
         const images = allPosts.filter(
           (p) => p.postpic && p.postpic !== "default.png"
         );
@@ -97,11 +94,13 @@ export default function UserProfile() {
               alt="Cover"
               className="w-full h-32 object-cover rounded-t-2xl"
             />
+            <span className="w-24 h-24 overflow-hidden">
             <img
               src={user.profilepic || "/default.png"}
               alt="Avatar"
-              className="w-24 h-24 rounded-full border-4 border-white absolute left-4 -bottom-12"
-            />
+              className="w-24  rounded-full object-cover border-4 border-white absolute left-4 -bottom-12"
+              />
+              </span>
             {/* Edit Profile and SideBar Menu */}
             <div className="absolute top-2 right-2 flex justify-center gap-3 mx-3 mt-3">
               <span onClick={() => navigate("/profile/update")}>

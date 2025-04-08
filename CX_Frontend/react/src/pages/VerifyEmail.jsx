@@ -5,7 +5,7 @@ import instance from '../services/axiosInstances';
 const VerifyEmail = () => {
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
-  const [status, setStatus] = useState("loading"); // loading, success, error
+  const [status, setStatus] = useState("loading"); 
 
   const queryParams = new URLSearchParams(window.location.search);
   const token = queryParams.get("token");
