@@ -137,6 +137,7 @@ function logOut(req, res) {
   });
   res.status(200).send({ message: "Logged out successfully" });
 };
+
 async function verifyUser(req, res, next) {
   try {
     const token = req.cookies.token;

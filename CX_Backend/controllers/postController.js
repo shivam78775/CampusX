@@ -1,3 +1,4 @@
+const postModel = require("../models/postModel");
 const Post = require("../models/postModel");
 const userModel = require("../models/userModel");
 
@@ -44,6 +45,23 @@ async function createPost(req, res) {
 }
 
 module.exports = { createPost };
+
+async function getPostById (req, res){
+    try {
+      const { postId } = req.params;
+      const post = await postModel.findById(postId)
+        .populate("user", "username name profilepic")
+        .populate("comments.user", "username name profilepic");
+  
+      if (!post) return res.status(404).json({ message: "Post not found" });
+  
+      res.status(200).json(post);
+    } catch (error) {
+      console.error("Error fetching post:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  };
+  
 
 async function getAllPosts(req, res) {
     try {
@@ -219,4 +237,4 @@ async function addComment(req, res) {
     }
 }
 
-module.exports = { createPost, getAllPosts, getUserPosts, updatePost, deletePost, likeUnlikePost, addComment};
+module.exports = { createPost, getAllPosts, getUserPosts, updatePost, deletePost, likeUnlikePost, addComment, getPostById};

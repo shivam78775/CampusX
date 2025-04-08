@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CancelSquareIcon } from "@hugeicons/core-free-icons";
+import { useNavigate } from "react-router-dom";
+
 
 export default function UpdateProfile() {
   const [name, setName] = useState("");
@@ -8,6 +12,8 @@ export default function UpdateProfile() {
   const [coverpic, setCoverpic] = useState("");
   const [previewProfile, setPreviewProfile] = useState("");
   const [previewCover, setPreviewCover] = useState("");
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -67,6 +73,7 @@ export default function UpdateProfile() {
       );
 
       alert("Profile updated successfully!");
+      navigate("/profile");
     } catch (err) {
       console.error("Error updating profile", err);
       alert("Update failed");
@@ -76,7 +83,15 @@ export default function UpdateProfile() {
   return (
     <div className="min-h-screen w-screen flex justify-center bg-white overflow-x-hidden">
       <div className="max-w-md mx-auto mt-10 p-4 bg-white rounded-xl shadow text-black">
-        <h3 className="text-xl font-bold mb-4">Update Profile</h3>
+        <div className="flex justify-between">
+          <h3 className="text-xl font-bold mb-4">Update Profile</h3>
+          <span
+            onClick={() => navigate("/profile")}
+            className="cursor-pointer hover:opacity-70 transition font-bold"
+          >
+            <HugeiconsIcon icon={CancelSquareIcon} />
+          </span>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

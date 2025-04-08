@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import axios from "axios";
 import { Card } from "../components/Card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/Tabs";
@@ -163,12 +163,13 @@ export default function ProfilePage() {
                   </p>
                 ) : (
                   imagePosts.map((post) => (
-                    <img
-                      key={post._id}
-                      src={post.postpic}
-                      alt="Post"
-                      className="w-full h-32 object-cover rounded-lg border-[0.5px] border-gray-700"
-                    />
+                    <Link to={`/post/${post._id}`} key={post._id}>
+                      <img
+                        src={post.postpic}
+                        alt="Post"
+                        className="w-full h-32 object-cover rounded-lg border-[0.5px] border-gray-700"
+                      />
+                    </Link>
                   ))
                 )}
               </TabsContent>

@@ -14,6 +14,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import SearchUsers from './pages/SearchUsers';
 import UpdateProfilePage from "./pages/UpdateProfilePage";
+import SinglePostPage from "./pages/SinglePostPage";
 
 function App() {
   useEffect(() => {
@@ -46,6 +47,7 @@ function App() {
         <Route path="/verify-email/" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/post/:postId" element={<SinglePostPage />} />
       </Routes>
     </Router>
   );

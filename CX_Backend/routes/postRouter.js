@@ -6,7 +6,8 @@ const {
   updatePost,
   deletePost,
   likeUnlikePost,
-  addComment
+  addComment,
+  getPostById
 } = require('../controllers/postController');
 const { verifyUser } = require('../controllers/userController');
 const { upload } = require('../config/cloudinary');
@@ -17,6 +18,7 @@ const postRouter = express.Router();
 postRouter.get('/all', verifyUser, getAllPosts);
 postRouter.post('/create', verifyUser, upload.single('postpic'), createPost);
 postRouter.get('/user/:userId', verifyUser, getUserPosts);
+postRouter.get("/:postId", verifyUser, getPostById);
 postRouter.put('/update/:postId', verifyUser, updatePost);
 postRouter.delete('/delete/:postId', verifyUser, deletePost);
 postRouter.post('/like-unlike/:postId', verifyUser, likeUnlikePost);
