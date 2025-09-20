@@ -36,11 +36,14 @@ export default function UserProfile() {
           `http://localhost:4444/api/v1/post/user/${data._id}`
         );
         const allPosts = res.data || [];
+        
+        // Filter out anonymous posts from user profile
+        const nonAnonymousPosts = allPosts.filter(post => !post.isAnonymous);
 
-        const images = allPosts.filter(
+        const images = nonAnonymousPosts.filter(
           (p) => p.postpic && p.postpic !== "default.png"
         );
-        const blogs = allPosts.filter(
+        const blogs = nonAnonymousPosts.filter(
           (p) => !p.postpic || p.postpic === "default.png"
         );
 

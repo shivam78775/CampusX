@@ -24,7 +24,11 @@ const postSchema = new mongoose.Schema({
     }],
     postpic: {
         type: String
+    },
+    isAnonymous: {
+        type: Boolean,
+        default: false
     }
 });
 
-module.exports = mongoose.model("Post", postSchema);
+module.exports = mongoose.models.Post || mongoose.model("Post", postSchema);

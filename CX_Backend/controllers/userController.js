@@ -275,9 +275,12 @@ async function getUserProfile(req, res) {
 
     const posts = await postModel.find({ user: user._id })
       .sort({ date: -1 })
-      .select('_id content postpic likes comments date createdAt');
+      .select('_id content postpic likes comments date createdAt isAnonymous');
 
-    const formattedPosts = posts.map(post => ({
+    // Filter out anonymous posts for display
+    const nonAnonymousPosts = posts.filter(post => !post.isAnonymous);
+    
+    const formattedPosts = nonAnonymousPosts.map(post => ({
       _id: post._id,
       caption: post.content,
       postpic: post.postpic,
@@ -296,7 +299,7 @@ async function getUserProfile(req, res) {
         profilepic: user.profilepic,
         coverpic: user.coverpic,
         bio: user.bio,
-        postsCount: user.posts.length,
+        postsCount: nonAnonymousPosts.length, // Only count non-anonymous posts
         followersCount: user.followers.length,
         followingCount: user.following.length
       },
@@ -399,6 +402,22 @@ async function toggleFollow(req, res) {
       targetUser.followers.push(currentUserId);
       await currentUser.save();
       await targetUser.save();
+
+      // Create notification for follow
+      const Notification = require("../models/notification");
+      const io = req.app.get("io");
+      
+      const notification = await Notification.create({
+        sender: currentUserId,
+        receiver: targetUserId,
+        type: "follow"
+      });
+
+      const populatedNotification = await Notification.findById(notification._id)
+        .populate("sender", "username profilepic");
+
+      io.to(targetUserId).emit("new_notification", populatedNotification);
+
       return res.status(200).json({ success: true, message: "User followed.", isFollowing: true });
     }
 

@@ -20,7 +20,7 @@ export default function NotFound() {
         </p>
         <button
           onClick={() => navigate("/")}
-          className="bg-blue-500 text-black px-5 py-2 rounded-full hover:bg-black-600 transition"
+          className="bg-lime-400 text-black px-5 py-2 rounded-full hover:bg-lime-500 transition"
         >
           Go to Home
         </button>

@@ -34,27 +34,42 @@ export default function Post({ post, currentUserId }) {
     <div className="bg-gray-50 rounded-xl shadow-sm text-black min-w-[350px] mb-11">
       {/* Post Header */}
       <div className="flex items-center gap-3 p-3">
-        <div className="w-10 h-10 rounded-full border border-gray-400 overflow-hidden">
-          <img
-            onClick={handleClickAccount}
-            className="w-10 object-cover cursor-pointer"
-            src={post?.user?.profilepic || "/default.png"}
-            alt={
-              post?.user?.username
-                ? `${post.user.username}'s profile`
-                : "User Profile"
-            }
-          />
-        </div>
-
-        <div>
-          <p className="font-semibold text-black cursor-pointer" onClick={handleClickAccount}>
-            @{post?.user?.username || "username"}
-          </p>
-          <p className="text-xs text-gray-500">
-            {post?.date ? getRelativeTime(post.date) : "• Just now"}
-          </p>
-        </div>
+        {post?.isAnonymous ? (
+          <>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-gray-300 to-gray-400 flex items-center justify-center">
+              <span className="text-white font-bold text-sm">?</span>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-700">Anonymous User</p>
+              <p className="text-xs text-gray-500">
+                {post?.date ? getRelativeTime(post.date) : "• Just now"}
+              </p>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="w-10 h-10 rounded-full border border-gray-400 overflow-hidden">
+              <img
+                onClick={handleClickAccount}
+                className="w-10 object-cover cursor-pointer"
+                src={post?.user?.profilepic || "/default.png"}
+                alt={
+                  post?.user?.username
+                    ? `${post.user.username}'s profile`
+                    : "User Profile"
+                }
+              />
+            </div>
+            <div>
+              <p className="font-semibold text-black cursor-pointer" onClick={handleClickAccount}>
+                @{post?.user?.username || "username"}
+              </p>
+              <p className="text-xs text-gray-500">
+                {post?.date ? getRelativeTime(post.date) : "• Just now"}
+              </p>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Post Image */}
@@ -65,10 +80,16 @@ export default function Post({ post, currentUserId }) {
       {/* Post Body */}
       <div className="p-3">
         <p className="text-sm">
-          <span className="font-semibold">@{post?.user?.username}</span>{" "}
-          {post?.content}
+          {post?.isAnonymous ? (
+            post?.content
+          ) : (
+            <>
+              <span className="font-semibold">@{post?.user?.username}</span>{" "}
+              {post?.content}
+            </>
+          )}
         </p>
-        <PostFooter post={post} />
+        <PostFooter post={{ ...post}}  currentUserId={currentUserId} />
       </div>
     </div>
   );

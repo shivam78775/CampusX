@@ -2,6 +2,7 @@ const express = require('express');
 const {
   createPost,
   getAllPosts,
+  getAnonymousPosts,
   getUserPosts,
   updatePost,
   deletePost,
@@ -16,6 +17,7 @@ const postRouter = express.Router();
 
 
 postRouter.get('/all', verifyUser, getAllPosts);
+postRouter.get('/anonymous', verifyUser, getAnonymousPosts);
 postRouter.post('/create', verifyUser, upload.single('postpic'), createPost);
 postRouter.get('/user/:userId', verifyUser, getUserPosts);
 postRouter.get("/:postId", verifyUser, getPostById);

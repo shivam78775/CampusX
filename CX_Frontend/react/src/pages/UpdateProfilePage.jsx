@@ -139,7 +139,7 @@ export default function UpdateProfile() {
 
           <button
             type="submit"
-            className="w-full  border-black underline bg-gray-500 py-2 rounded hover:bg-blue-600"
+            className="w-full  border-black underline bg-gray-500 py-2 rounded hover:bg-gray-600"
           >
             Save Changes
           </button>

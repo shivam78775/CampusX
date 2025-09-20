@@ -10,6 +10,7 @@ export default function CreatePostPage() {
   const [content, setContent] = useState("");
   const [hashtags, setHashtags] = useState(""); 
   const [image, setImage] = useState(null);
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const navigate = useNavigate();
 
   const handleImageChange = (e) => {
@@ -28,6 +29,7 @@ export default function CreatePostPage() {
     const formData = new FormData();
     formData.append("content", finalContent); 
     if (image) formData.append("postpic", image);
+    formData.append("isAnonymous", isAnonymous);
 
     try {
       const res = await axios.post(
@@ -71,25 +73,60 @@ export default function CreatePostPage() {
           onSubmit={handleSubmit}
           className="flex flex-col space-y-4 bg-white p-4 rounded-2xl shadow-lg text-gray-500"
         >
+          {/* Anonymous Toggle */}
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-gray-300 to-gray-400 flex items-center justify-center">
+                <span className="text-white font-bold text-sm">?</span>
+              </div>
+              <div>
+                <p className="font-semibold text-gray-700">Anonymous Post</p>
+                <p className="text-xs text-gray-500">Your identity will be hidden</p>
+              </div>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isAnonymous}
+                onChange={(e) => {
+                  setIsAnonymous(e.target.checked);
+                  if (e.target.checked) {
+                    setImage(null); // Clear image when switching to anonymous
+                  }
+                }}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+            </label>
+          </div>
+
           <textarea
-            placeholder="What's on your mind?"
+            placeholder={isAnonymous ? "Share your thoughts anonymously..." : "What's on your mind?"}
             className="border border-gray-200 rounded-xl p-4 w-full resize-none h-36 focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
             value={content}
             onChange={(e) => setContent(e.target.value)}
           />
           <div className="flex gap-3">
             {/* Image Upload */}
-            <label className="flex-1 flex items-center justify-center gap-2 cursor-pointer text-green-700 text-sm font-medium border border-dashed border-green-300 py-2 rounded-xl hover:bg-green-50 truncate">
+            <label className={`flex-1 flex items-center justify-center gap-2 text-sm font-medium border border-dashed py-2 rounded-xl truncate ${
+              isAnonymous 
+                ? "cursor-not-allowed text-gray-400 border-gray-200 bg-gray-50" 
+                : "cursor-pointer text-green-700 border-green-300 hover:bg-green-50"
+            }`}>
               <FiImage size={18} />
-              {image
-                ? image.name.length > 20
-                  ? image.name.slice(0, 20) + "..."
-                  : image.name
-                : "Add Image"}
+              {isAnonymous 
+                ? "Images not allowed in anonymous posts"
+                : image
+                  ? image.name.length > 20
+                    ? image.name.slice(0, 20) + "..."
+                    : image.name
+                  : "Add Image"
+              }
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
+                disabled={isAnonymous}
                 className="hidden"
               />
             </label>
@@ -106,9 +143,13 @@ export default function CreatePostPage() {
 
           <button
             type="submit"
-            className="bg-gradient-to-r from-[#eafe31] to-[#d2f93c] text-black font-semibold py-3 rounded-2xl shadow-md hover:opacity-90 transition duration-200"
+            className={`font-semibold py-3 rounded-2xl shadow-md hover:opacity-90 transition duration-200 ${
+              isAnonymous 
+                ? "bg-gradient-to-r from-gray-500 to-gray-600 text-white" 
+                : "bg-gradient-to-r from-[#eafe31] to-[#d2f93c] text-black"
+            }`}
           >
-            Post
+            {isAnonymous ? "Post Anonymously" : "Post"}
           </button>
         </form>
          {/* Footer */}

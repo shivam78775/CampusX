@@ -26,7 +26,9 @@ export default function ProfilePage() {
           `http://localhost:4444/api/v1/user/profile/${username}`
         );
         setUser(res.data.user);
-        setPosts(res.data.posts);
+        // Filter out anonymous posts from user profile
+        const nonAnonymousPosts = res.data.posts.filter(post => !post.isAnonymous);
+        setPosts(nonAnonymousPosts);
         setIsFollowing(res.data.isFollowing);
         setLoggedInUserId(res.data.loggedInUserId);
         setLoading(false);

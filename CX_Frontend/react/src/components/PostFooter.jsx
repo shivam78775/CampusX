@@ -7,98 +7,102 @@ import {
   Share01Icon,
   ThumbsUpIcon,
 } from "@hugeicons/core-free-icons";
+import CommentSection from "./CommentSection";
+import SharePopup from "./SharePopup";
 
 function PostFooter({ post, currentUserId }) {
-    const [likes, setLikes] = useState(post?.likes || []);
-    const [comments, setComments] = useState(post?.comments || []);
-    const [isLiked, setIsLiked] = useState(false);
+  const [likes, setLikes] = useState(post?.likes || []);
+  const [comments, setComments] = useState(post?.comments || []);
+  const [showComments, setShowComments] = useState(false);
+  const [showSharePopup, setShowSharePopup] = useState(false);
   
-    useEffect(() => {
-      setIsLiked(likes.includes(currentUserId));
-    }, [likes, currentUserId]);
-  
-    useEffect(() => {
-      const handlePostLiked = ({ postId, updatedLikes }) => {
-        if (postId === post._id) {
-          setLikes(updatedLikes);
-        }
-      };
-  
-      socket.on("post-liked", handlePostLiked);
-  
-      return () => {
-        socket.off("post-liked", handlePostLiked);
-      };
-    }, [post._id]);
-  
-    const handleLike = async () => {
-      try {
-        const res = await axios.post(
-          `http://localhost:4444/api/v1/post/like-unlike/${post._id}`,
-          {},
-          { withCredentials: true }
-        );
-  
-        if (res.data.liked) {
-          setLikes((prev) => [...prev, currentUserId]);
-          socket.emit("like-post", { postId: post._id });
-        } else {
-          setLikes((prev) => prev.filter((id) => id !== currentUserId));
-        }
-      } catch (err) {
-        console.error("Error liking post:", err);
+ 
+
+  useEffect(() => {
+    const handlePostLiked = ({ postId, updatedLikes }) => {
+      if (postId === post._id) {
+        setLikes(updatedLikes);
       }
     };
-  
-    const handleComment = async () => {
-      const text = prompt("Write your comment:");
-      if (!text) return;
-  
-      try {
-        const res = await axios.post(
-          `http://localhost:4444/api/v1/post/comment/${post._id}`,
-          { text },
-          { withCredentials: true }
-        );
-        setComments((prev) => [...prev, res.data.comment]);
-      } catch (err) {
-        console.error("Error commenting:", err);
-      }
+
+    socket.on("post-liked", handlePostLiked);
+
+    return () => {
+      socket.off("post-liked", handlePostLiked);
     };
-  
-    return (
+  }, [post._id]);
+
+  const handleLike = async () => {
+    try {
+      const res = await axios.post(
+        `http://localhost:4444/api/v1/post/like-unlike/${post._id}`,
+        {},
+        { withCredentials: true }
+      );
+
+      // Update likes with the response from server
+      setLikes(res.data.likes);
+    } catch (err) {
+      console.error("Error liking post:", err);
+    }
+  };
+
+  const handleComment = () => {
+    setShowComments(!showComments);
+  };
+
+  const handleShare = () => {
+    setShowSharePopup(true);
+  };
+
+  return (
+    <div>
       <div className="flex space-x-4 my-2 justify-between items-center">
         <div className="flex gap-2">
           <HugeiconsIcon
             icon={ThumbsUpIcon}
             onClick={handleLike}
-            className={`cursor-pointer ${
-              isLiked ? "text-blue-500" : "text-black"
+            className={`cursor-pointer transition-colors duration-200 ${
+              likes.includes(currentUserId) ? "text-blue-500" : "text-gray-600 hover:text-blue-400"
             }`}
           />
+
           <p className="text-sm pt-1 text-gray-500">{likes.length} Likes</p>
         </div>
         <div className="flex gap-2">
           <HugeiconsIcon
             icon={MessageMultiple02Icon}
-            className="text-black cursor-pointer"
+            className="text-gray-600 cursor-pointer hover:text-blue-400 transition-colors duration-200"
             onClick={handleComment}
           />
           <p
-            className="text-sm pt-1 text-gray-500 cursor-pointer"
+            className="text-sm pt-1 text-gray-500 cursor-pointer hover:text-gray-700 transition-colors duration-200"
             onClick={handleComment}
           >
             {comments.length} Comments
           </p>
         </div>
-  
-        <HugeiconsIcon
-          icon={Share01Icon}
-          className="text-black cursor-pointer"
+
+        <HugeiconsIcon 
+          icon={Share01Icon} 
+          className="text-gray-600 cursor-pointer hover:text-blue-400 transition-colors duration-200" 
+          onClick={handleShare}
         />
       </div>
-    );
-  }
-  
-  export default PostFooter;
-  
+      
+      <CommentSection 
+        post={post} 
+        isOpen={showComments} 
+        onClose={() => setShowComments(false)}
+      />
+      
+      <SharePopup 
+        post={post} 
+        isOpen={showSharePopup} 
+        onClose={() => setShowSharePopup(false)}
+      />
+    </div>
+  );
+}
+
+export default PostFooter;

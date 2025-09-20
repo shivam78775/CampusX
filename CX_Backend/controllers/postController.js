@@ -10,7 +10,7 @@ async function createPost(req, res) {
   }
 
   try {
-    const { content } = req.body;
+    const { content, isAnonymous } = req.body;
 
     let imageUrl; // Fallback if no image
 
@@ -23,6 +23,7 @@ async function createPost(req, res) {
       content,
       user: req.user._id,
       postpic: imageUrl,
+      isAnonymous: isAnonymous === 'true' || isAnonymous === true,
     });
 
     await newPost.save();
@@ -69,17 +70,44 @@ async function getAllPosts(req, res) {
 
         const posts = await Post.find()
         .populate("user", "username name email profilepic")
-        // ✅ Include user profile picture
-            .sort({ date: -1 });  // ✅ Latest posts first
+        .populate("comments.user", "username name profilepic")
+        .sort({ date: 1 });  // ✅ Oldest posts first
 
         if (!posts || posts.length === 0) {
             return res.status(404).json({ message: "No posts found" });
         }
 
-        console.log(`Posts fetched successfully: ${posts.length}`);
-        res.status(200).json(posts);
+        // Add some randomization to the order
+        const shuffledPosts = posts.sort(() => Math.random() - 0.5);
+
+        console.log(`Posts fetched successfully: ${shuffledPosts.length}`);
+        res.status(200).json(shuffledPosts);
     } catch (error) {
         console.error("Error fetching posts:", error);
+        res.status(500).json({ message: "Server error", error });
+    }
+}
+
+async function getAnonymousPosts(req, res) {
+    try {
+        console.log("Fetching anonymous posts...");
+
+        const posts = await Post.find({ isAnonymous: true })
+        .populate("user", "username name email profilepic")
+        .populate("comments.user", "username name profilepic")
+        .sort({ date: 1 });  // Oldest posts first
+
+        if (!posts || posts.length === 0) {
+            return res.status(404).json({ message: "No anonymous posts found" });
+        }
+
+        // Add some randomization to the order
+        const shuffledPosts = posts.sort(() => Math.random() - 0.5);
+
+        console.log(`Anonymous posts fetched successfully: ${shuffledPosts.length}`);
+        res.status(200).json(shuffledPosts);
+    } catch (error) {
+        console.error("Error fetching anonymous posts:", error);
         res.status(500).json({ message: "Server error", error });
     }
 }
@@ -92,14 +120,20 @@ async function getUserPosts(req, res) {
 
         const posts = await Post.find({ user: userId })
         .populate("user", "username name email profilePic")
-        // ✅ Get user details
-            .sort({ date: -1 });  // ✅ Newest first
+        .populate("comments.user", "username name profilepic")
+        .sort({ date: 1 });  // Oldest first
 
-        if (!posts || posts.length === 0) {
+        // Filter out anonymous posts
+        const nonAnonymousPosts = posts.filter(post => !post.isAnonymous);
+
+        if (!nonAnonymousPosts || nonAnonymousPosts.length === 0) {
             return res.status(404).json({ message: "No posts found for this user" });
         }
 
-        res.status(200).json(posts);
+        // Add some randomization to the order
+        const shuffledPosts = nonAnonymousPosts.sort(() => Math.random() - 0.5);
+
+        res.status(200).json(shuffledPosts);
     } catch (error) {
         console.error("Error fetching user posts:", error);
         res.status(500).json({ message: "Server error", error });
@@ -179,6 +213,25 @@ async function likeUnlikePost(req, res) {
 
         if (likedIndex === -1) {
             post.likes.push(userId);
+            
+            // Create notification for like (only if not liking own post)
+            if (post.user._id.toString() !== userId.toString()) {
+                const Notification = require("../models/notification");
+                const io = req.app.get("io");
+                
+                const notification = await Notification.create({
+                    sender: userId,
+                    receiver: post.user._id,
+                    type: "like",
+                    post: postId
+                });
+
+                const populatedNotification = await Notification.findById(notification._id)
+                    .populate("sender", "username profilepic")
+                    .populate("post", "postpic");
+
+                io.to(post.user._id.toString()).emit("new_notification", populatedNotification);
+            }
         } else {
             post.likes.splice(likedIndex, 1);
         }
@@ -216,7 +269,7 @@ async function addComment(req, res) {
             return res.status(400).json({ message: "Comment text is required" });
         }
 
-        const post = await Post.findById(postId);
+        const post = await Post.findById(postId).populate("user");
         if (!post) {
             return res.status(404).json({ message: "Post not found" });
         }
@@ -230,11 +283,37 @@ async function addComment(req, res) {
         post.comments.push(newComment);
         await post.save();
 
-        res.status(201).json({ message: "Comment added", post });
+        // Populate the new comment with user data
+        const populatedPost = await Post.findById(postId)
+            .populate("comments.user", "username name profilepic");
+
+        const addedComment = populatedPost.comments[populatedPost.comments.length - 1];
+
+        // Create notification for comment (only if not commenting on own post)
+        if (post.user._id.toString() !== userId.toString()) {
+            const Notification = require("../models/notification");
+            const io = req.app.get("io");
+            
+            const notification = await Notification.create({
+                sender: userId,
+                receiver: post.user._id,
+                type: "comment",
+                post: postId,
+                content: text.substring(0, 100) // Store first 100 chars of comment
+            });
+
+            const populatedNotification = await Notification.findById(notification._id)
+                .populate("sender", "username profilepic")
+                .populate("post", "postpic");
+
+            io.to(post.user._id.toString()).emit("new_notification", populatedNotification);
+        }
+
+        res.status(201).json({ message: "Comment added", comment: addedComment });
     } catch (error) {
         console.error("Error adding comment:", error);
         res.status(500).json({ message: "Server error", error });
     }
 }
 
-module.exports = { createPost, getAllPosts, getUserPosts, updatePost, deletePost, likeUnlikePost, addComment, getPostById};
+module.exports = { createPost, getAllPosts, getAnonymousPosts, getUserPosts, updatePost, deletePost, likeUnlikePost, addComment, getPostById};

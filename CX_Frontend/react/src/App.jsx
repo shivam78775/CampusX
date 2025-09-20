@@ -17,6 +17,9 @@ import UpdateProfilePage from "./pages/UpdateProfilePage";
 import SinglePostPage from "./pages/SinglePostPage";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import NotificationBox from "./pages/Notification";
+import ChatPage from "./pages/ChatPage";
+import AnonymousPosts from "./pages/AnonymousPosts";
 
 function App() {
   useEffect(() => {
@@ -78,6 +81,14 @@ function App() {
           }
         />
         <Route
+          path="/chat"
+          element={
+            <ProtectedRoute>
+              <ChatPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/profile"
           element={
             <ProtectedRoute>
@@ -101,7 +112,22 @@ function App() {
             </ProtectedRoute>
           }
         />
-
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <NotificationBox />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/anonymous-posts"
+          element={
+            <ProtectedRoute>
+              <AnonymousPosts />
+            </ProtectedRoute>
+          }
+        />
         {/* Catch-all for 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>

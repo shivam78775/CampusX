@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { checkAuth } from "../utils/checkAuth";
 import RestrictedAccess from "../pages/RestrictedAccess";
+import LoadingSpinner from "./LoadingSpinner";
 
 export default function ProtectedRoute({ children }) {
   const [loading, setLoading] = useState(true);
@@ -15,7 +16,15 @@ export default function ProtectedRoute({ children }) {
     verify();
   }, []);
 
-  if (loading) return <div className="text-center mt-10">Checking access...</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white animate-fadeIn">
+        <div className="text-center">
+          <LoadingSpinner size="lg" color="blue" text="Checking access..." />
+        </div>
+      </div>
+    );
+  }
 
   return authenticated ? children : <RestrictedAccess />;
 }
