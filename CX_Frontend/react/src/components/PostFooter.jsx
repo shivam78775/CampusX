@@ -59,13 +59,16 @@ function PostFooter({ post, currentUserId }) {
     <div>
       <div className="flex space-x-4 my-2 justify-between items-center">
         <div className="flex gap-2">
+          {likes.includes(currentUserId) ? (
           <HugeiconsIcon
             icon={ThumbsUpIcon}
             onClick={handleLike}
-            className={`cursor-pointer transition-colors duration-200 ${
-              likes.includes(currentUserId) ? "text-blue-500" : "text-gray-600 hover:text-blue-400"
-            }`}
-          />
+            className={`cursor-pointer transition-colors duration-200`}
+          />) : (<HugeiconsIcon
+            icon={ThumbsUpIcon}
+            onClick={handleLike}
+            className={`cursor-pointer transition-colors duration-200`}
+          />)}
 
           <p className="text-sm pt-1 text-gray-500">{likes.length} Likes</p>
         </div>
